@@ -1,10 +1,12 @@
-var $ = function(id) { return document.getElementById(id); };
-var dc = function(tag) { return document.createElement(tag); };
+import Thing from './Thing'
 
-function createDiv(parent, imagesrc, width, height, id) {
+export function $(id: string): any { return document.getElementById(id); };
+export function dc(tag: string): any { return document.createElement(tag); };
+
+/*function createDiv(parent, imagesrc, width, height, id) {
     var screen = $(parent);
 
-    div = dc("div");
+    const div = dc("div");
     if (id) {
         div.setAttribute("id", id);
     }
@@ -19,14 +21,14 @@ function createDiv(parent, imagesrc, width, height, id) {
     screen.appendChild(div);
     
     return div;
-}
-function getParameterByName(name) {
+}*/
+export function getParameterByName(name: string) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(location.search);
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
-function updateObjects(arr, dt, arg) {
+export function updateObjects(arr: Thing[], dt: number, arg: any) {
     for (var i = arr.length - 1;i >= 0;i--) {
         if (arr[i].update(dt, arg) == false) {
             arr.splice(i, 1);
@@ -34,10 +36,10 @@ function updateObjects(arr, dt, arg) {
     }
     //return arr;
 }
-function getRandomInt(min, max) {
+export function getRandomInt(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-function shuffleArray(array) {
+function shuffleArray(array: any[]) {
     for (var i = array.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
         var temp = array[i];
@@ -46,7 +48,7 @@ function shuffleArray(array) {
     }
     return array;
 }
-function drawRect(context, x, y, width, height, color, opacity) {
+export function drawRect(context: CanvasRenderingContext2D, x:number, y:number, width: number, height: number, color: string, opacity:number) {
     if (color && context.fillStyle != color) {
         context.fillStyle = color;
     }
@@ -62,7 +64,7 @@ function drawRect(context, x, y, width, height, color, opacity) {
         context.restore();
     }
 }
-function drawBox(context, x, y, width, height, color, opacity) {
+export function drawBox(context: CanvasRenderingContext2D, x:number, y:number, width: number, height:number, color: string, opacity:number) {
     if (context.lineWidth != 1) {
         context.lineWidth = 1;
     }
@@ -83,7 +85,7 @@ function drawBox(context, x, y, width, height, color, opacity) {
         context.restore();
     }
 }
-function drawCircle(context, x, y, radius, color, opacity) {
+function drawCircle(context: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string, opacity: number) {
     if (color && context.strokeStyle != color) {
         context.strokeStyle = color;
     }
@@ -103,7 +105,7 @@ function drawCircle(context, x, y, radius, color, opacity) {
         context.restore();
     }
 }
-function drawText(context, text, font, style, x, y, opacity, align) {
+export function drawText(context: CanvasRenderingContext2D, text: string, font: string, style: string, x: number, y: number, opacity: number, align: string) {
     if (!align) {
         align = 'center';
     }
@@ -157,11 +159,11 @@ function normalizeVector(v) {
 /*function getDrawPos(p) {
     return [p[0] - gCamera[0], p[1] - gCamera[1]];
 }*/
-function lockToScreen(thing) {
+function lockToScreen(thing: Thing) {
     _lockToScreen(thing, true);
     _lockToScreen(thing, false);
 }
-function _lockToScreen(thing, width) {
+function _lockToScreen(thing: Thing, width) {
     var i = width?0:1;
     if (thing.pos[i] < 0) {
         thing.pos[i] = 0;

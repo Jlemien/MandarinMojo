@@ -1,56 +1,53 @@
-/*
- * NOTICE:  All information contained herein is, and remains
- * the property of Andrew Davis.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained.
- * If you want to use this code for something, contact me via http://mandarinmojo.com.
- * I am happy to discuss
- * This code does not come with any sort of warranty.
- */
-(function() {
+import {$, dc, getRandomInt, getParameterByName} from './util'
+import {World, Globals } from './globals'
 
-window.game = window.game || { };
+import StateManager from './StateManager'
 
 window.onload = function() {
-    gLeft = $("left_col");
-    gRight = $("left_col");
-    gTable = $("thetable");
+    const globals: Globals = {
+        context: null,
+        world: null
+    }
 
-    gCanvas = dc("canvas");
+    const gLeft = $("left_col");
+    const gRight = $("left_col");
+    const gTable = $("thetable");
+
+    const gCanvas: HTMLCanvasElement = dc("canvas");
     gCanvas.width = 800;
     gCanvas.height = 600;
     gLeft.appendChild(gCanvas);
 
-    gContext = gCanvas.getContext("2d");
+    const gContext: CanvasRenderingContext2D = gCanvas.getContext("2d");
 
-	if (getParameterByName("Pinyin") == 1) {
-	    gPinyin = dc("p");
-        text = document.createTextNode(" ");
+	if (getParameterByName("Pinyin") == '1') {
+	    const gPinyin = dc("p");
+        const text = document.createTextNode(" ");
         gPinyin.appendChild(text);
         gLeft.appendChild(gPinyin);
 	}
-	if (getParameterByName("Audio") == 1) {
-        gAudio = dc("span");
+	if (getParameterByName("Audio") == '1') {
+        const gAudio = dc("span");
         $("foot").appendChild(gAudio);
 	}
-	if (getParameterByName("English") == 1 || (!gPinyin && !gAudio)) {
+	if (getParameterByName("English") == '1' || (!gPinyin && !gAudio)) {
 		gQuestion = dc("p");
         var text = document.createTextNode(" ");
         gQuestion.appendChild(text);
         gLeft.appendChild(gQuestion);
 	}
 
-	gDivs = [gQuestion, gPinyin, gAudio];
+	const gDivs = [gQuestion, gPinyin, gAudio];
 
-    gWorld = {
+    const world: World = {
         debug: false,
 
         keyState: Array(),
-        state: new game.StateManager(), // Defaults to state LOADING.
-        images: null,
-        sounds: null,
+        state: new StateManager(), // Defaults to state LOADING.
+        images: new game.ImageManager(),
+        sounds: new game.SoundManager()
 
-        playerinfo: new game.PlayerInfoManager(),
+        playerinfo: new PlayerInfoManager(),
 
         tileDisplayWidth: 32,
         mapWidth: 800,
@@ -75,17 +72,16 @@ window.onload = function() {
         hp: new HanyuPinyin(),
         tts: new ChineseTextToSpeech(),
         toggleSpeaker: function() {
-            gWorld.localTTS = !gWorld.localTTS;
+            world.localTTS = !world.localTTS;
             /*var s = 'Speaker A';
             if (gWorld.localTTS) {
                 s = 'Speaker B';
             }*/
             var s = "switching speaker";
-            gWorld.message = new game.Message(s);
-        }
+            world.message = new game.Message(s);
+        },
     };
-    gWorld.images = new game.ImageManager();
-    gWorld.sounds = new game.SoundManager();
+    globals.world = world
 
     window.addEventListener('keydown', onKeyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
@@ -169,11 +165,11 @@ function overlay() {
 
 function loadWords() {
 	var traditionaloffset = 0;
-	if (getParameterByName("traditional") == 1) {
+	if (getParameterByName("traditional") == '1') {
 		traditionaloffset = 1;
 	}
 	var squiglytoneoffset = 1; // hē
-	if (getParameterByName("tone") == 1) {
+	if (getParameterByName("tone") == '1') {
 		squiglytoneoffset = 0; // he1
 	}
 
@@ -189,7 +185,7 @@ function loadWords() {
 		var n = i;
 		var name = "HSK"+(++n);
 		wordobjects[i] = Array();
-		//if (getParameterByName(name)) {
+		//if (util.getParameterByName(name)) {
 			var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
 			xmlhttp.onreadystatechange = function() {
 				
@@ -241,7 +237,7 @@ function loadWords() {
                         lengthnotmatch++;
                         //console.log("gave up trying to character count match "+wordobjects[i][j].character);
                     }
-                    wrongword = new game.Word(wrongword.character, wrongword.pinyin, wrongword.getToRead(), wrongword.english, false);
+                    wrongword = new Word(wrongword.character, wrongword.pinyin, wrongword.getToRead(), wrongword.english, false);
                     wordarray.push(wrongword);
                     attempts = 0;
 	            } else {
@@ -325,4 +321,3 @@ window.requestAnimFrame = (function(){
           };
 })();
 
-}());

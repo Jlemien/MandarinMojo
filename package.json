@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/andyjdavis/MandarinMojo#readme",
   "devDependencies": {
+    "tslint": "^5.9.1",
     "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.1"
   }

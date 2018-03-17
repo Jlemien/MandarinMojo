@@ -1,8 +1,22 @@
-const Thing = require('./Thing');
+import Thing from './Thing'
+import { numberPair } from './types';
+import {getGlobals} from './globals'
+import { Player } from './Player';
+import { calcNormalVector } from './util';
 
 export default class Monster extends Thing {
+    timeDied: number;
+    type: number
+    frame: number
+    maxframe: number
+    lives: number
+    sourcesize: [numberPair, numberPair]
+    sourcelocations: [numberPair, numberPair]
+    deadsize: numberPair
+    deadlocation: numberPair
 
-    constructor(pos, type) {
+    constructor(pos: numberPair, type: number) {
+        super(pos)
         this.type = type;
         this.frame = 0;
         this.maxframe = 1;
@@ -55,95 +69,97 @@ export default class Monster extends Thing {
         //game.Thing.call(this, pos, [32, 32]);
         this.pos, [32, 32];
     }
-}
- 
-game.Monster.prototype.draw = function(camerapos) {
-    var img = gWorld.images.getImage('monster');
-    if (!img) {
-        return;
-    }
 
-    if (this.isDead()) {
-        var sourceX = this.deadlocation[0];
-        var sourceY = this.deadlocation[1];
-        var sourceWidth = this.deadsize[0];
-        var sourceHeight = this.deadsize[1];
-        gContext.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, this.pos[0]+camerapos[0], this.pos[1]+camerapos[1], sourceWidth/2, sourceHeight/2);
-        return;
-    }
+    draw(camerapos: numberPair) {
+        const globals = getGlobals()
+        const world = globals.world
+        const context = globals.context
 
-    if (gWorld.loopCount % 10 == 0) {
-        this.frame++;
-    }
-    if (this.frame > this.maxframe) {
-        this.frame = 0;
-    }
-    
-    if (this.vel[0] > 0) {
-        gContext.save();
-        var flipAxis = this.pos[0] + this.size[0]/2;
-        gContext.translate(flipAxis, 0);
-        gContext.scale(-1, 1);
-        gContext.translate(-flipAxis, 0);
-    }
-    
-    var sourceX = this.sourcelocations[this.frame][0];
-    var sourceY = this.sourcelocations[this.frame][1];
-    var sourceWidth = this.sourcesize[this.frame][0];
-    var sourceHeight = this.sourcesize[this.frame][1];
-    gContext.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, this.pos[0]+camerapos[0], this.pos[1]+camerapos[1], sourceWidth/2, sourceHeight/2);
-
-    if (this.vel[0] > 0) {
-        gContext.restore();
-    }
-
-    game.Thing.prototype.draw.call(this); // Draw bounding box.
-};
-game.Monster.prototype.update = function(dt, player) {
-    if (this.isDead() && Date.now() > this.timeDied + 2000) {
-        return false;
-    }
-    if (this.isDead()) {
-        return true;
-    }
-    if (player != undefined) {
-        var vect = calcNormalVector(player.pos, this.pos);
-        var maxvar = null;
-        switch(this.type) {
-            case 0:
-                // Fly.
-                maxvar = 2500;
-                break;
-            case 1:
-                // Blob.
-                maxvar = 1600;
-                break;
-            case 2:
-                // Snail.
-                maxvar = 1000;
-                break;
+        var img = world.images.getImage('monster');
+        if (!img) {
+            return;
         }
-        this.vel[0] = maxvar * dt * vect[0];
-        this.vel[1] = maxvar * dt * vect[1];
+    
+        if (this.isDead()) {
+            var sourceX = this.deadlocation[0];
+            var sourceY = this.deadlocation[1];
+            var sourceWidth = this.deadsize[0];
+            var sourceHeight = this.deadsize[1];
+            context.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, this.pos[0]+camerapos[0], this.pos[1]+camerapos[1], sourceWidth/2, sourceHeight/2);
+            return;
+        }
+    
+        if (world.loopCount % 10 == 0) {
+            this.frame++;
+        }
+        if (this.frame > this.maxframe) {
+            this.frame = 0;
+        }
+        
+        if (this.vel[0] > 0) {
+            context.save();
+            var flipAxis = this.pos[0] + this.size[0]/2;
+            context.translate(flipAxis, 0);
+            context.scale(-1, 1);
+            context.translate(-flipAxis, 0);
+        }
+        
+        var sourceX = this.sourcelocations[this.frame][0];
+        var sourceY = this.sourcelocations[this.frame][1];
+        var sourceWidth = this.sourcesize[this.frame][0];
+        var sourceHeight = this.sourcesize[this.frame][1];
+        context.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, this.pos[0]+camerapos[0], this.pos[1]+camerapos[1], sourceWidth/2, sourceHeight/2);
+    
+        if (this.vel[0] > 0) {
+            context.restore();
+        }
+    
+        super.draw(); // Draw bounding box.
+    };
+    update(dt: number, player: Player) {
+        if (this.isDead() && Date.now() > this.timeDied + 2000) {
+            return false;
+        }
+        if (this.isDead()) {
+            return true;
+        }
+        if (player != undefined) {
+            var vect = calcNormalVector(player.pos, this.pos);
+            var maxvar = null;
+            switch(this.type) {
+                case 0:
+                    // Fly.
+                    maxvar = 2500;
+                    break;
+                case 1:
+                    // Blob.
+                    maxvar = 1600;
+                    break;
+                case 2:
+                    // Snail.
+                    maxvar = 1000;
+                    break;
+            }
+            this.vel[0] = maxvar * dt * vect[0];
+            this.vel[1] = maxvar * dt * vect[1];
+        }
+        super.update(dt);
+        return true;
+    };
+    die() {
+        //$("left_col").removeChild(this.div);
+    };
+    hit(vector: numberPair) {
+        this.lives--;
+        if (this.isDead()) {
+            this.timeDied = Date.now();
+        }
+    
+        const pushback = 5;
+        this.pos[0] += (vector[0] * pushback);
+        this.pos[1] += (vector[1] * pushback);
+    };
+    isDead() {
+        return this.lives <= 0;
     }
-    game.Thing.prototype.update.call(this, dt);
-    return true;
-};
-game.Monster.prototype.die = function() {
-    //$("left_col").removeChild(this.div);
-};
-game.Monster.prototype.hit = function(vector) {
-    this.lives--;
-    if (this.isDead()) {
-        this.timeDied = Date.now();
-    }
-
-    pushback = 5;
-    this.pos[0] += (vector[0] * pushback);
-    this.pos[1] += (vector[1] * pushback);
-};
-game.Monster.prototype.isDead = function() {
-    return this.lives <= 0;
 }
-
-//}());

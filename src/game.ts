@@ -1,5 +1,5 @@
 import {$, dc, getRandomInt, getParameterByName} from './util'
-import {World, Globals } from './globals'
+import {World, Globals, getGlobals } from './globals'
 
 import StateManager from './StateManager'
 
@@ -74,7 +74,7 @@ window.onload = function() {
         toggleSpeaker: function() {
             world.localTTS = !world.localTTS;
             /*var s = 'Speaker A';
-            if (gWorld.localTTS) {
+            if (world.localTTS) {
                 s = 'Speaker B';
             }*/
             var s = "switching speaker";
@@ -96,13 +96,13 @@ window.onload = function() {
 
 function onKeyDown(event) {
     //console.log(event.keyCode);
-    var stateengine = gWorld.state.getStateEngine();
+    var stateengine = world.state.getStateEngine();
     if (typeof stateengine.onKeyDown === 'function') {
         stateengine.onKeyDown(event);
     }
 
     // The following should really be done in the relevant state engines.
-    if (state == gWorld.state.states.ARENA || state == gWorld.state.states.PAUSED) {
+    if (state == world.state.states.ARENA || state == world.state.states.PAUSED) {
         if (event.keyCode == 80) {
             // p
             pause();
@@ -113,52 +113,52 @@ function onKeyDown(event) {
         }
         if (event.keyCode == 83) {
             // s
-            gWorld.toggleSpeaker();
+            world.toggleSpeaker();
         }
     }
-    if (state == gWorld.state.states.MAP || state == gWorld.state.states.OVERLAY) {
+    if (state == world.state.states.MAP || state == world.state.states.OVERLAY) {
         if (event.keyCode == 72) {
             // h
             overlay();
         }
     }
-    gWorld.keyState[event.keyCode] = true;
+    world.keyState[event.keyCode] = true;
 }
 function onKeyUp(event) {
-    gWorld.keyState[event.keyCode] = false;
+    world.keyState[event.keyCode] = false;
 }
 function onMouseClick(event) {
 }
 function pause() {
-    var state = gWorld.state.getState();
-    if (state == gWorld.state.states.ARENA) {
-        gWorld.state.pushState(gWorld.state.states.PAUSED);
-    } else if (state == gWorld.state.states.PAUSED) {
-        gWorld.state.popState();
+    var state = world.state.getState();
+    if (state == world.state.states.ARENA) {
+        world.state.pushState(world.state.states.PAUSED);
+    } else if (state == world.state.states.PAUSED) {
+        world.state.popState();
     }
     //ignore p if in any other state
 }
 function mute() {
-    gWorld.sounds.togglemute();
-    if (gWorld.sounds.enabled) {
-        gWorld.message = new game.Message('unmuted');
+    world.sounds.togglemute();
+    if (world.sounds.enabled) {
+        world.message = new game.Message('unmuted');
     } else {
-        gWorld.message = new game.Message('muted');
+        world.message = new game.Message('muted');
     }
 }
 function overlay() {
-    var state = gWorld.state.getState();
-    if (state == gWorld.state.states.MAP) {
-        var stateEngine = gWorld.state.getStateEngine();
+    var state = world.state.getState();
+    if (state == world.state.states.MAP) {
+        var stateEngine = world.state.getStateEngine();
         var cameraPosition = stateEngine.cameraposition;
         var bottomRight = stateEngine._getBottomRight();
 
-        stateEngine = gWorld.state.pushState(gWorld.state.states.OVERLAY);
+        stateEngine = world.state.pushState(world.state.states.OVERLAY);
         stateEngine.cameraPosition = cameraPosition;
         stateEngine.bottomRight = bottomRight;
         
-    } else if (state == gWorld.state.states.OVERLAY) {
-        gWorld.state.popState();
+    } else if (state == world.state.states.OVERLAY) {
+        world.state.popState();
     }
     //ignore h if in any other state
 }
@@ -217,9 +217,9 @@ function loadWords() {
     var attempts = 0;
     for (var i in files) {
         totalwordcount = wordobjects[i].length;
-        gWorld.problems[i] = Array();
+        world.problems[i] = Array();
 
-        if (gWorld.debug) {
+        if (world.debug) {
             var lengthnotmatch = 0;
         }
 	    for (var j in wordobjects[i]) {
@@ -233,7 +233,7 @@ function loadWords() {
 	            if (wrongword.character != wordobjects[i][j].character
 	                && (attempts > 40 || wrongword.character.length == correctwordcharcount)) {
 
-                    if (gWorld.debug && attempts > 40) {
+                    if (world.debug && attempts > 40) {
                         lengthnotmatch++;
                         //console.log("gave up trying to character count match "+wordobjects[i][j].character);
                     }
@@ -244,75 +244,77 @@ function loadWords() {
 	                attempts++;
 	            }
 	        }
-	        gWorld.problems[i].push(new game.Problem(shuffleArray(wordarray)));
+	        world.problems[i].push(new game.Problem(shuffleArray(wordarray)));
 	    }
-	    if (gWorld.debug) {
-	        //gWorld.problems[i].splice(0, gWorld.problems[i].length - 3);
+	    if (world.debug) {
+	        //world.problems[i].splice(0, world.problems[i].length - 3);
 	    }
-	    gWorld.problems[i] = shuffleArray(gWorld.problems[i]);
+	    world.problems[i] = shuffleArray(world.problems[i]);
 
-	    if (gWorld.debug) {
+	    if (world.debug) {
 	        console.log("loaded file "+i);
-	        console.log("contains how many phrases? " + gWorld.problems[i].length);
+	        console.log("contains how many phrases? " + world.problems[i].length);
 	        console.log(lengthnotmatch+" incorrect answers could not be length matched");
 	    }
     }
 }
 
 function updateGame(dt) {
-    var stateengine = gWorld.state.getStateEngine();
+    var stateengine = world.state.getStateEngine();
     if (stateengine) {
         stateengine.update(dt);
     }
-    if (gWorld.message) {
-        if (gWorld.message.update(dt) == false) {
-            gWorld.message = null;
+    if (world.message) {
+        if (world.message.update(dt) == false) {
+            world.message = null;
         }
     }
 }
     
 function drawGame() {
     gContext.clearRect(0, 0, gCanvas.width, gCanvas.height);
-    gWorld.state.getStateEngine().draw();
-    if (gWorld.debug) {
-        var frames = Math.floor(1/gWorld.dt);
+    world.state.getStateEngine().draw();
+    if (world.debug) {
+        var frames = Math.floor(1/world.dt);
         drawText(gContext,
                  frames,
-                 gWorld.textsize,
-                 gWorld.textcolor,
+                 world.textsize,
+                 world.textcolor,
                  150,
                  0);
     }
 }
 
 var mainloop = function() {
+    const globals = getGlobals()
+    const world = globals.world
 
-    if (gWorld != null) {
-        gWorld.now = Date.now();
+    if (world != null) {
+        world.now = Date.now();
 
-        state = gWorld.state.getState();
-        if (state != gWorld.state.states.PAUSED && gWorld.then != 0) {
-            gWorld.dt = (gWorld.now - gWorld.then)/1000;
-            //gWorld.dt = (1000 / 60)/1000;
+        const state = world.state.getState();
+        if (state != world.state.states.PAUSED && world.then != 0) {
+            world.dt = (world.now - world.then)/1000;
+            //world.dt = (1000 / 60)/1000;
 
-            if (gWorld.dt > 0.25) {
+            if (world.dt > 0.25) {
                 console.log('large dt detected');
-                //gWorld.dt = (1000 / 60)/1000; // 1/60th of a second.
-                gWorld.dt = 0;
+                //world.dt = (1000 / 60)/1000; // 1/60th of a second.
+                world.dt = 0;
             } else {
-                gWorld.loopCount++;
-                gWorld.loopCount %= 20; //stop it going to infinity
+                world.loopCount++;
+                world.loopCount %= 20; //stop it going to infinity
 
-                updateGame(gWorld.dt);
+                updateGame(world.dt);
                 drawGame();
             }
         }
-        gWorld.then = gWorld.now;
+        world.then = world.now;
     }
 
     window.requestAnimFrame(mainloop);
 };
-window.requestAnimFrame = (function(){
+window.requestAnimFrame = (function() {
   return  window.requestAnimationFrame       ||
           window.webkitRequestAnimationFrame ||
           window.mozRequestAnimationFrame    ||

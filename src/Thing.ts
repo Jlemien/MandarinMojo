@@ -1,13 +1,16 @@
 import {drawBox} from './util'
+import {getGlobals} from './globals'
+import {config} from './config'
+import { numberPair } from './types';
 
 export default class Thing {
-    pos: number[]
-    size: number[]
-    vel: number[]
-    footprint: number[]
+    pos: numberPair
+    size: numberPair
+    vel: numberPair
+    footprint: numberPair
     angle: number
 
-    constructor(pos?: number[], size?: number[], vel?: number[]) {
+    constructor(pos?: numberPair, size?: numberPair, vel?: numberPair) {
         this.pos = pos;
 
         this.size = size;
@@ -23,7 +26,7 @@ export default class Thing {
         this.angle = 0; //radians
     };
 
-    update(dt: number, _: any): boolean {
+    update(dt: number, _?: any): boolean {
         if (this.vel == undefined) {
             return true;
         }
@@ -37,23 +40,27 @@ export default class Thing {
         //lockToScreen(this, false);
         return true
     };
-    draw(drawpos: number[], imageName: string) {
-        if (g.debug) {
+    draw(drawpos?: number[], imageName?: string) {
+        const globals = getGlobals()
+        const world = globals.world
+        const context = globals.context
+
+        if (config.debug) {
             // Draw bounding box.
             var pos = this.pos;
             /*if (this.getCollisionPos) {
                 pos = this.getCollisionPos();
             }*/
-            drawBox(g.context,
+            drawBox(context,
                     pos[0] + this.size[0] - this.footprint[0],
                     pos[1] + this.size[1] - this.footprint[1],
                     this.footprint[0], this.footprint[1], 'yellow', 0.6);
         }
     
         if (imageName) {
-            var img = gWorld.images.getImage(imageName);
+            var img = world.images.getImage(imageName);
             if (img) {
-                gContext.drawImage(img, drawpos[0], drawpos[1]);
+                context.drawImage(img, drawpos[0], drawpos[1]);
             }
         }
     };
@@ -87,11 +94,12 @@ export default class Thing {
         var pos = this._getOwnPos();
         return [pos[0]+(this.footprint[0]/2), pos[1]+(this.footprint[1]/2)];
     }
+    getCollisionPos() {
+        return this.pos
+    }
     _getOwnPos() {
-        var thispos = this.pos;
-        if (this.getCollisionPos) {
-            thispos = this.getCollisionPos();
-        }
+        // will this call getCollisionPos() on a child class?
+        var thispos = this.getCollisionPos()
         return thispos;
     }
     /*game.Thing.prototype.circleCollide = function(otherThing) {

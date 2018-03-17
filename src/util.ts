@@ -1,4 +1,5 @@
 import Thing from './Thing'
+import {numberPair} from './types'
 
 export function $(id: string): any { return document.getElementById(id); };
 export function dc(tag: string): any { return document.createElement(tag); };
@@ -48,7 +49,7 @@ function shuffleArray(array: any[]) {
     }
     return array;
 }
-export function drawRect(context: CanvasRenderingContext2D, x:number, y:number, width: number, height: number, color: string, opacity:number) {
+export function drawRect(context: CanvasRenderingContext2D, x:number, y:number, width: number, height: number, color?: string, opacity?:number) {
     if (color && context.fillStyle != color) {
         context.fillStyle = color;
     }
@@ -133,23 +134,23 @@ export function drawText(context: CanvasRenderingContext2D, text: string, font: 
         context.restore();
     }
 }
-function angleToVector(ang) {
+function angleToVector(ang: number) {
     return [Math.cos(ang), Math.sin(ang)]
 }
-function calcDistance(vect) {
+function calcDistance(vect: [number, number]) {
     return Math.sqrt(Math.pow(vect[0], 2) + Math.pow(vect[1], 2));
 }
-function calcVector(p1, p2) {
+function calcVector(p1: numberPair, p2: numberPair): numberPair {
     return [p1[0] - p2[0], p1[1] - p2[1]];
 }
-function calcNormalVector(p1, p2) {
+export function calcNormalVector(p1: numberPair, p2: numberPair) {
     var vect = calcVector(p1, p2);
     var h = calcDistance(vect);
     vect[0] = vect[0] / h;
     vect[1] = vect[1] / h;
     return vect;
 }
-function normalizeVector(v) {
+function normalizeVector(v: numberPair) {
     var vect = [0, 0];
     var h = calcDistance(v);
     vect[0] = v[0] / h;
@@ -159,15 +160,16 @@ function normalizeVector(v) {
 /*function getDrawPos(p) {
     return [p[0] - gCamera[0], p[1] - gCamera[1]];
 }*/
-function lockToScreen(thing: Thing) {
-    _lockToScreen(thing, true);
-    _lockToScreen(thing, false);
-}
-function _lockToScreen(thing: Thing, width) {
-    var i = width?0:1;
-    if (thing.pos[i] < 0) {
-        thing.pos[i] = 0;
-    } else if (thing.pos[i] + thing.size[i] > gCanvas.width) {
-        thing.pos[i] = gCanvas.width - thing.size[i];
+function lockToScreen(thing: Thing, canvas: HTMLCanvasElement) {
+    if (thing.pos[0] < 0) {
+        thing.pos[0] = 0;
+    } else if (thing.pos[0] + thing.size[0] > canvas.width) {
+        thing.pos[0] = canvas.width - thing.size[0];
+    }
+
+    if (thing.pos[1] < 0) {
+        thing.pos[1] = 0;
+    } else if (thing.pos[1] + thing.size[1] > canvas.height) {
+        thing.pos[1] = canvas.height - thing.size[1];
     }
 }
